@@ -12,7 +12,7 @@
 # along with this program. If not, see .
 #
 # Copyright (c) [2025] [Roman Tenger]
-#https://github.com/Alex-C-EE/Bricklayers-Optimized-File/tree/unified-gcode-manager
+
 import re
 import sys
 import logging
