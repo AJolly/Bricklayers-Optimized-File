@@ -53,6 +53,18 @@ class GCodeProcessor:
         
         logging.warning("No printer type markers found - defaulting to Prusa")
         return "prusa"
+    
+    def detect_layer_height(self, lines):
+        """Detect printer type based on G-code features"""
+        logging.info("Starting layer heightdetection")
+        
+        for i, line in enumerate(lines):
+            if "; layer_height =" in line:
+                logging.info(line)
+                match = re.search(r'; layer_height = ([\d.]+)', line)
+                if match:
+                    return float(match.group(1))
+        return None
 
     def get_z_height_from_comment(self, line):
         """Extract Z height from comment if present"""
@@ -195,7 +207,6 @@ class GCodeProcessor:
         
         logging.info("Starting G-code processing")
         logging.info(f"Input file: {input_file}")
-        logging.info(f"Z-shift: {self.z_shift} mm, Layer height: {self.layer_height} mm")
 
         # Handle bgcode conversion if necessary
         input_path = Path(input_file)
@@ -211,9 +222,13 @@ class GCodeProcessor:
             lines = content.splitlines(True)
             self.printer_type = self.detect_printer_type(lines)
             self.total_layers = sum(1 for line in lines if line.startswith("G1 Z"))
+            self.layer_height = self.detect_layer_height(lines)
         
         logging.info(f"Detected printer type: {self.printer_type}")
         logging.info(f"Total layers detected: {self.total_layers}")
+        self.z_shift = self.layer_height * 0.5;
+        logging.info(f"Z-shift: {self.z_shift} mm, Layer height: {self.layer_height} mm")
+
 
         # Process the file using a temporary file
         temp_file = NamedTemporaryFile(mode='w', delete=False)
